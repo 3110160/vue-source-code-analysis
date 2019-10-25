@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>vue源码实现</title>
+  </head>
+  <body>
+    <div id="app">
+      <p>{{ title }}</p>
+    </div>
+    <script src="./my-vue.js"></script>
+    <script>
+      const app = new Mvue({
+        el: "app",
+        data: {
+          title: "vue源码实现",
+          bar: {
+            baz: 2323
+          }
+        },
+        created() {},
+        mounted() {}
+      });
+
+      app.$data.title = 111;
+      app.$data.bar.baz = 12222;
+    </script>
+  </body>
+</html>
