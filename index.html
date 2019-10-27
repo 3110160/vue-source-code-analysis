@@ -8,12 +8,20 @@
   </head>
   <body>
     <div id="app">
-      <p>{{ title }}</p>
+      <p>sasada{{title}}</p>
+      <div>
+          <p v-html='title'></p>
+      </div>
+      <button @click='chengeTitle'>改变title</button>
+      <input v-model='title' type="text">
     </div>
     <script src="./my-vue.js"></script>
+    <script src="./watcher.js"></script>
+    <script src="./dependence.js"></script>
+    <script src="./compile.js"></script>
     <script>
       const app = new Mvue({
-        el: "app",
+        el: "#app",
         data: {
           title: "vue源码实现",
           bar: {
@@ -21,11 +29,13 @@
           }
         },
         created() {},
-        mounted() {}
+        methods:{
+          chengeTitle(){
+            this.data.title = 'title 被改变来';
+          }
+        }
       });
-
-      app.$data.title = 111;
-      app.$data.bar.baz = 12222;
+      
     </script>
   </body>
 </html>
