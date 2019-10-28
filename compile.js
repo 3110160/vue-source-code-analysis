@@ -34,7 +34,7 @@ class Compile {
     Array.from(fragment.childNodes).forEach(node => {
       //元素节点
       if (this.isElementNode(node)) {
-        console.log(`元素节点`, node);
+        // console.log(`元素节点`, node);
         // 在这里我们来检测其节点属性 attributes 是否含有 v-html,v-modle,@click这些🈯️令
         Array.from(node.attributes).forEach(atter => {
           const atterName = atter.name;
@@ -44,16 +44,21 @@ class Compile {
             const dir = atterName.substr(2);
             this[dir] && this[dir](node, key);
           }
+          if(this.isEvntDirective(atterName)){
+            // 事件绑定
+            const eventName = atterName.substr(1);
+            this.handleEvent&&this.handleEvent(node,eventName,key)
+          }
         });
       }
       // 文本节点
       if (this.isTextNode(node)) {
         // 纯文本节点可以不作处理
-        console.log(`文本节点`, node.textContent);
+        // console.log(`文本节点`, node.textContent);
       }
       // 插槽节点
       if (this.isInterpolation(node)) {
-        console.log(`插槽节点`, node.textContent);
+        // console.log(`插槽节点`, node.textContent);
         this.compileText(node);
       }
       // 如果有子元素，递归
@@ -78,8 +83,14 @@ class Compile {
   isDirective(atterName) {
     return atterName.indexOf("v-") === 0;
   }
+  // 是否符合 @xxx 事件指令的形式
+  isEvntDirective(atterName) {
+    return atterName.indexOf("@") === 0;
+  }
   // 编译文本
   compileText(node) {
+    // 保留最初的模板
+    node.originText = node.textContent;
     this.update(node, this.$vm, RegExp.$1, `text`);
   }
   // 指令编译 v-html
@@ -87,19 +98,31 @@ class Compile {
     this.update(node, this.$vm, key, `html`);
   }
   // 指令编译 v-model
-  model(node,key) {
+  model(node, key) {
     this.update(node, this.$vm, key, `model`);
     node.addEventListener("input", e => {
       this.$vm[key] = e.target.value;
       console.log(this.$vm[key])
     });
   }
+  // 在node节点上绑定事件
+  handleEvent(node,eventName,cbName){
+    node.addEventListener(eventName, this.$vm.$options.methods[cbName].bind(this.$vm))
+  }
   // 更新
   // updateType 更新的类型函数
   update(node, vm, key, updateType) {
     const updateFn = this[updateType + "Update"];
     // 这里执行是第一次编译模板，后面的更新是动态更新
-    updateFn && updateFn(node, vm[key]);
+    let value = vm[key];
+    // 如果有多层对象取值 a.b.c
+    if(key.indexOf('.')>-1){
+      value = vm;
+      key.split('.').forEach(item=>{
+        value = value[item]
+      })
+    }
+    updateFn && updateFn(node,value);
     // 这里的回调函数是在watcher里面的notify里面触发
     new Watcher(vm, key, val => {
       updateFn && updateFn(node, val);
@@ -108,7 +131,7 @@ class Compile {
   // 文本节点更新函数
   textUpdate(node, val) {
     const reg = /\{\{(.*)\}\}/;
-    node.textContent = node.textContent.replace(reg, val);
+    node.textContent = node.originText.replace(reg, val);
   }
   // 指令v-html更新函数
   htmlUpdate(node, val) {

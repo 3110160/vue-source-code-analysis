@@ -9,6 +9,8 @@ class Mvue {
     this.observe(this.$data);
     // 初始化编译模版
     new Compile(this.$el, this);
+    // 执行 created 声明周期
+    this.$options.created.call(this)
     // new Watcher();
     // // 在这里模拟render的过程，为了触发test属性的get函数
     // this.$data.title;
@@ -27,12 +29,12 @@ class Mvue {
     });
   }
   // 将data上到属性代理到 vue实例上，方便后面直接在实li上操作data
-  proxyData2vue(key){
-    Object.defineProperty(this,key,{
-      get(){
+  proxyData2vue(key) {
+    Object.defineProperty(this, key, {
+      get() {
         return this.$data[key]
       },
-      set(val){
+      set(val) {
         this.$data[key] = val;
       }
     })
@@ -53,18 +55,15 @@ class Mvue {
     Object.defineProperty(obj, key, {
       get() {
         // 如果当前有人来取这个值来，说明当前视图在获取当前值来渲染，必然会new 一个Watcher来订阅这个值，以便之后值发生改变来通知视图更新
-        console.log(Dependence.target);
         Dependence.target && dep.addWatcher(Dependence.target);
-        console.log(dep);
+        console.log(key,dep);
         return val;
       },
       set(newVal) {
         if (newVal !== val) {
           val = newVal;
           // 通知订阅当前依赖的watcher去更新它所对应的视图
-          console.log(dep);
           dep.notify();
-          console.log(`${key}:发生变化了`);
         }
       }
     });
